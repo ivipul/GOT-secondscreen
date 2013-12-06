@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Game of Thrones</title>
+<link rel="stylesheet" href="css/styles.css" type="text/css" />
+<script src="http://128.61.26.200:11000/socket.io/socket.io.js"></script>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+<script src="js/e-smart-zoom-jquery.min.js"></script>
+<script src="js/owl.carousel.min.js"></script>
+  <!-- Unless using the CDN hosted version, update the URL to the Flash SWF -->
+<link rel="stylesheet" href="css/owl.carousel.css" type="text/css" />
+
+<!--[if lt IE 9]>
+			<script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+		<![endif]-->
+<script>
+			var lastX, lastY;
+			var maxScene = 0;
+			var owl;
+			var flag = 0;
+			$(document).ready(function() {
+				$('#imageFullScreen').smartZoom({'maxScale':4,'containerClass':'zoomableContainer',
+		      'dblTapEnabled' : false, 'pinchEnabled':false});
+			var searchIndex = ["Joffrey Baratheon","Renly Baratheon", "Robert Baratheon","Stannis Baratheon" , "Cersi Lannister","Jamie Lannister", "Lancel Lannister" , "Tyrion Lannister" , "Tywin Lannister" , "Arya Stark" , "Brandon Stark" , "Catelyn Stark" , "Eddard Stark" , "Rickon Stark" , "Rob Stark" , "Sansa Stark" , "Daenerys Targaryen" , " Viserys_Targaryen", "Stark (family)" , "Lannister (family)" , "Baratheon (family)" , "Targaryen (family)"];
+
+				var input = document.getElementById("searchBox"),
+				    ul = document.getElementById("searchResults"),
+				    inputTerms, termsArray, prefix, terms, results, sortedResults;
+				
+				
+				var search = function () {
+				    inputTerms = input.value.toLowerCase();
+				    results = [];
+				    termsArray = inputTerms.split(' ');
+				    prefix = termsArray.length === 1 ? '' : termsArray.slice(0, -1).join(' ') + ' ';
+				    terms = termsArray[termsArray.length - 1].toLowerCase();
+				    
+				    for (var i = 0; i < searchIndex.length; i++) {
+				        var a = searchIndex[i].toLowerCase(),
+				            t = a.indexOf(terms);
+				
+				        if (t > -1) {
+				            results.push(a);
+				        }
+				    }
+				
+				    evaluateResults();
+				};
+				
+				house_flag=0;
+				
+				$('#stark_flag').on("click",function(){
+				$('#houseflags li').css('border',"2px solid #fff");
+				   $('#stark_flag').css('border',"5px solid #fff");
+				   $("#searches img").hide();	    
+				   
+				   $('.stark').show();	  
+				   house_flag=1;       	
+				});
+				
+				$('#lannister_flag').on("click",function(){
+				
+				$('#houseflags li').css('border',"2px solid #fff");
+				   $('#lannister_flag').css('border',"5px solid #fff");
+				   $("#searches img").hide();
+		    
+				 $('.lannister').show();
+				 house_flag=1;
+				});
+				
+				
+				$('#baratheon_flag').on("click",function(){
+				$('#houseflags li').css('border',"2px solid #fff");
+				   $('#baratheon_flag').css('border',"5px solid #fff");
+				   $("#searches img").hide();
+		    
+				 $('.baratheon').show();
+				 house_flag=1;
+         	
+				});
+				
+				
+				$('#targaryen_flag').on("click",function(){
+				$('#houseflags li').css('border',"2px solid #fff");
+				   $('#targaryen_flag').css('border',"5px solid #fff");
+				   $("#searches img").hide();
+				 
+				 $('.targaryen').show();
+         	    house_flag=1;
+				 
+				});
+				
+				
+				
+				var evaluateResults = function () {
+				
+				if(house_flag==1)
+				{
+				   $('#houseflags li').css('border',"2px solid #fff");
+					$("#searches img").hide();
+					house_flag=0;
+				}
+				
+				    if (results.length > 0 && inputTerms.length > 0 && terms.length !== 0) {
+				        sortedResults = results.sort(sortResults);
+				        appendResults();
+				    } else if (inputTerms.length > 0 && terms.length !== 0) {
+				        ul.innerHTML = '<li>Sorry! No results.</li>';
+				
+				    } else if (inputTerms.length !== 0 && terms.length === 0) {
+				        return;
+				    } else {
+				        clearResults();
+				    }
+				};
+				
+				var sortResults = function (a, b) {
+				    if (a.indexOf(terms) < b.indexOf(terms)) return -1;
+				    if (a.indexOf(terms) > b.indexOf(terms)) return 1;
+				    return 0;
+				}
+			
+				var appendResults = function () {
+				    clearResults();
+				
+				    for (var i = 0; i < sortedResults.length && i < 5; i++) {
+				       // var li = document.createElement("li"),	        
+				        
+				        result = prefix + sortedResults[i].toLowerCase().replace(terms, '<strong>' + terms + '</strong>');
+				      
+					   	name=sortedResults[i].toLowerCase();
+				
+				       // li.innerHTML = result;
+				       // ul.appendChild(li);
+				        
+				        
+				       $('#searchResults').append('<li class="result">'+result+'</li>');
+				    }
+				
+				    if (ul.className !== "term-list") {
+				        ul.className = "term-list";
+				    }
+				    
+				    $('.result').on("click",function(){
+				   
+				         className = $(this).text().split(' ');
+				        console.log(className[0]);  
+				      
+				       $("."+className[0]).show();
+				       $('#searchBox').attr('value','');
+				       
+				       clearResults();
+				    });
+				};
+				
+				var clearResults = function () {
+				    ul.className = "term-list hidden";
+				    ul.innerHTML = '';
+				};
+				
+				
+				
+				input.addEventListener("keyup", search, false);
+				
+				$("#search-icon").toggle(
+		         function () {
+		           $('#search').animate({opacity: "1"}, 200).show();
+		           $('#search input[type="search"]').animate({right: "0", opacity: "1"}, 300);
+		           $('#houseflags').animate({right: "0", opacity: "1"}, 200);
+		         },
+		         function () {
+		           $('#search input[type="search"]').animate({right: "-370px", opacity: "0"}, 200);
+		           $('#search').animate({opacity: "0"}, 200);
+		           setTimeout(function() {
+					      $('#search').hide()
+					}, 200);
+				$('#houseflags').animate({right: "-90px", opacity: "0"}, 500);
+			
+				   $("#searches img").hide();
+		         
+		         }
+		       );
+       
+       
+			});
+			$(window).load(function(){			
+				owl = $("#thumbnails");
+ 
+				  owl.owlCarousel({
+				      items : 3.2, 
+				      itemsDesktop : false, 
+				      itemsDesktopSmall : false,
+				      itemsTablet: false, 
+				      itemsMobile : false,
+				      rewindNav : false,
+				      responsive: false,
+				      afterMove: function(){
+							setTimeout(function(){
+		                    var style = window.getComputedStyle($("#thumbnails .owl-wrapper").get(0));
+							var matrix = new WebKitCSSMatrix(style.webkitTransform);
+							var transformPosition = matrix.m41;
+							var calculatedPosition = (maxScene)*320;
+							if ( calculatedPosition == Math.abs(transformPosition)){
+								$(".next").hide();
+								$(".pause").show();
+							} 
+							else{
+								$(".next").show();
+								$(".pause").hide();
+							}	                    	
+                    	},300)
+						}
+					});				 
+				  
+				  $(".next").click(function(){
+				    owl.trigger('owl.next');
+				  })
+				  $(".prev").click(function(){
+				    owl.trigger('owl.prev');
+				  })
+
+			 // Interactions on the event carousel at the bottom
+
+					$('#thumbnails .item').on("click",function(){
+						console.log("clicked");
+						$(".item").removeClass('clicked');
+						$(this).addClass('clicked');
+						console.log($('#thumbnails .item').index(this));
+						 owl.trigger('owl.goTo',$('#thumbnails .item').index(this));
+					});
+
+					$('#seeAllMoments').toggle(
+						function() {
+							$(this).css("-webkit-transform", "rotate(180deg)");
+							var numCards = $(".momentCard").length -1;
+							var bottomScroll = numCards*310 - 380;
+							if(bottomScroll > 0)
+								bottomScroll = 0;
+							$("#moments").animate({bottom: bottomScroll}, 300);
+							$("#hideMomentsBg").show();
+							$(".momentCard").each(function(i){$(this).css("top", (i*310)+"px") });
+							$("#moments").scrollTop(10000);
+							$('#seeAllMoments').animate({top: 0}, 300);
+						}, 
+						function() {
+							$(this).css("-webkit-transform", "rotate(0deg)");
+							$("#moments").animate({bottom: "-690px"}, 300);
+							$("#hideMomentsBg").hide();
+							$('#seeAllMoments').animate({top: 640}, 300);
+						}
+					);
+					
+					$(".circle").delay(300).show();
+
+				$("#scene1").on ("mouseout", function(){
+
+				  })
+		});
+		
+
+        var socket = io.connect('http://128.61.26.200:11000');
+
+		socket.on('videoStart', function  (data) {
+			$("#eventListing").append('<p>' + data.message + '</p>');
+		});
+
+		socket.on('incomingEvent', function  (event) {
+			var eventType = event.eventInfo.type;
+			console.log(eventType);
+			if (eventType == "newScene"){
+				handleNewScene(event.eventInfo);
+				console.log( event);
+			}
+			else if (eventType == "moment"){
+				handleMoment(event.eventInfo);
+			}
+			else if (eventType == "character"){
+				handleCharacterEntry(event.eventInfo);
+
+			}
+		});
+		socket.on('incomingDialog', function  (event) {
+			var dialogType = event.dialogInfo.type;
+			//console.log(dialogType);
+			if (dialogType == "startTalking"){
+				handleCharacterSpeaking(event.dialogInfo);			
+			}
+			else if (dialogType == "stopTalking"){
+				handleCharaterStops(event.dialogInfo);
+			}			
+		});
+
+		
+		function handleNewScene(eventInfo){
+			
+			console.log("Writing new scene info");
+
+			console.log(eventInfo);	
+
+			var image= $('#imageFullScreen');
+
+			
+		     last_panX = -20;
+		     last_panY = -794;
+		     panX=0;
+		     panY=0;
+			//The very first scene we zoom into the map
+			if(eventInfo.event == '0' && flag == 0){
+				
+				lastX = eventInfo.data.locationX;
+
+				lastY = eventInfo.data.locationY;				
+               $('#imageFullScreen').smartZoom('zoom', 2, {'x':lastX,'y':lastY+130}, 300);
+				flag=1;			
+			} 
+
+			else{
+
+				$('#imageFullScreen').smartZoom("pan",(lastX - eventInfo.data.locationX),(lastY - eventInfo.data.locationY),2000);
+				
+				$(".circle.big").css ({top: (eventInfo.data.locationY) , left:(eventInfo.data.locationX)});
+				console.log("big-circle");
+				console.log(eventInfo.data.locationX);
+				console.log(eventInfo.data.locationY);
+    
+               
+
+				curr_panX = ~~image.position().left;
+				curr_panY = ~~image.position().top;
+           
+              // if user has not panned then do not add pan pixels      
+			 // if user has panned to the left then subtract pan pixels in x-direction
+			
+			 console.log(last_panX);
+			 console.log(last_panY);
+			 console.log(curr_panX);
+			 console.log(curr_panY);
+
+				if(curr_panX < last_panX)
+					     panX = last_panX - curr_panX;
+			    else if(curr_panX > last_panX)
+			    	     panX = last_panX + curr_panX;
+
+
+              // if user has panned to the bottom then subtract pan pixels in y-direction
+				if(curr_panY > last_panY)
+					     panY = last_panY + curr_panY;
+			    else if(curr_panY < last_panY)
+			    	     panY = last_panY - curr_panY;
+
+               console.log(panX);
+               console.log(panY);
+
+               $('#imageFullScreen').smartZoom("pan",(lastX + panX - eventInfo.data.locationX),(lastY + panY - eventInfo.data.locationY),3000);
+
+                //$('#imageFullScreen').smartZoom('zoom', 2, {'x':lastX,'y':lastY+130}, 300);
+                  $(".circle.big").css ({top: (eventInfo.data.locationY) , left:(eventInfo.data.locationX)});
+
+				lastX = eventInfo.data.locationX;
+				lastY = eventInfo.data.locationY;
+				last_panX = ~~image.position().left;
+		        last_panY = ~~image.position().top;					
+	       	 }
+	       	
+	       	getCharacters(eventInfo.data.characters);
+			$(".item").removeClass('clicked');
+			
+			$("#scene"+eventInfo.data.scene).on("click", function(){
+				socket.emit('changeScene', {index: eventInfo.data.scene});})
+				.show().addClass('clicked');
+			owl.trigger('owl.goTo',eventInfo.data.scene);
+			if (eventInfo.data.scene > maxScene)
+				maxScene= eventInfo.data.scene;
+				
+			$(".seek").remove();
+			$("#scene"+eventInfo.data.scene).append('<div class="seek"></div>');
+		}
+
+		function handleMoment(eventInfo){
+			console.log("yeah. I am trying to show you a moment");
+			console.log(eventInfo);
+			//$("#moments").height($("#moments").height()+310);
+			$("#moments").append('<div id="moment'+eventInfo.event+'" class="momentCard"><div class="momentImg"><img src="assets/moments/moment'+eventInfo.event+'.jpg"/></div><div class="momentContent"><div class="momentTitle">'+eventInfo.data.title+'</div><div class="momentMore">Tap to Learn More</div></div></div>');
+			$("#moment"+eventInfo.event).css("top","0px");
+			$("#moments").animate({bottom:'-380px'},300).delay(5000).animate({bottom:'-690px'},300);
+			$("#seeAllMoments").show().animate({top:'330px'},300).delay(5000).animate({top:'640px'},300);
+		    //$("#moment"+eventInfo.event).animate({top:'0', opacity:1},300).delay(3500).animate({top:'375px', opacity:1},300);
+		    //$("#seeAllMoments").animate({top:'-40px', opacity:1},300).delay(3500).animate({top:'268px', opacity:0.8},300);
+		}
+	
+		function handleCharacterEntry(eventInfo){
+			console.log("try");
+			getCharacters(eventInfo.data.characters);
+			
+		}
+
+		function handleCharacterSpeaking(dialogInfo){			
+			var charactername = '#' + dialogInfo.character;
+			var tooltipname = "speaking-" + dialogInfo.family;
+			console.log(tooltipname);
+			//$(charactername).addClass("speaking").addClass(dialogInfo.family);
+			$(charactername).addClass(tooltipname);
+			//console.log(dialogInfo.character);
+		}
+		function handleCharaterStops(dialogInfo){		
+			var charactername = '#' + dialogInfo.character;
+			var tooltipname = "speaking-" + dialogInfo.family;
+			$(charactername).removeClass(tooltipname);
+			//$(charactername).removeClass("speaking").removeClass(dialogInfo.family);
+			//console.log(dialogInfo.character);
+		}
+
+		function getCharacters(characterInfo){
+				var family, img_url;
+				$("#big-circle").html('');
+				var circleNum = characterInfo.length;
+			    var radius = 25,
+			        smallRadius = 7.5;
+			    var container = $('#big-circle'), 
+			        width = container.width(), 
+			        height = container.height();
+			    var angle = 0, step = (2*Math.PI) / circleNum;
+			    for (var i = circleNum - 1; i >= 0; i--) {
+			        var x = Math.round(width/2 + radius * Math.cos(angle) - smallRadius);
+			        var y = Math.round(height/2 + radius * Math.sin(angle) - smallRadius);
+
+			        family = characterInfo[i].family;
+			        name = characterInfo[i].name;
+			        realname = name.replace("_"," ");
+
+					img_url = "assets/headshots/" + family + "/" + name + ".png";
+			        var circleCont = '<div class="circle small"></div>';
+			        var tagCont = '<div class="nametag" id="'+ name + '">' + realname + '</div>';
+			        newTag = $(tagCont);
+			        newCircle = $(circleCont);
+			        newCircle.css({'background':'url("'+img_url+'") center', 'background-size':'cover'}).addClass(family);	
+			        newCircle.appendTo($("#big-circle")).append(newTag);
+			        newCircle.css({
+			            left: x + 'px',
+			            top: y + 'px'
+			        });
+			        if ( y>width/2 ) {
+			        	newTag.css({		            
+				           top: '16px'
+				        });
+			        }else{
+			        	newTag.css({		                
+				            bottom: '10px'
+				        });
+			        }
+			        angle += step;
+
+			       
+			    
+			    }
+		}
+		
+		socket.on('updateCurrentTime', function  (data) {
+			var movementValue = 315/data.sceneDuration * (data.currentTime - data.sceneStart);
+			$(".seek").css("left", movementValue);
+		});
+
+
+		</script>
+</head>
+<body>
+<div id="app">
+	<div id="pageContent">
+		<div id="imgContainer"> 
+		
+			<div id="imageFullScreen">
+			 	
+			 	<div id="big-circle" class="circle big"></div>
+			    <!-- <img class="mapper" src="assets/map.gif" alt="map"/> -->
+			 	</div>
+		</div>
+		<div id="hideMomentsBg"></div> 
+		<img id="seeAllMoments" src="assets/up-arrow.png" alt="See all moments"/>
+	</div>
+		
+		
+	<div id="moments">
+	</div>
+<ul id="houseflags">
+                	<li id="stark_flag"><img src="assets/flags/house_stark.jpg"/></li>
+                	<li id="lannister_flag"><img src="assets/flags/House_Lannister.jpg"/></li>
+                	<li id="baratheon_flag"><img src="assets/flags/House_Baratheon.jpg"/></li>
+                	<li id="targaryen_flag"><img src="assets/flags/house_targaryen.jpg"/></li>
+    </ul>
+	<div id="search-box">
+            <input id="search-icon" type="submit" value="" class="button">
+            <div id="search">
+                <form action="javascript:void(0);" method="GET">
+                    <fieldset class="clearfix">
+                        <input id="searchBox" class="search-field" type="search" name="search" value="Search characters" onBlur="if(this.value=='')this.value='Search characters'" onFocus="if(this.value=='Search characters')this.value='' ">
+                        <!-- JS because of IE support; better: placeholder="What are you looking for?" -->
+                    </fieldset>
+                </form>
+                <ul id="searchResults" class="term-list hidden"></ul>
+                
+                
+            </div>
+            <!-- end search -->
+        </div>
+        
+	
+	<div id="searches">
+	
+		<img class="baratheon joffrey" src="assets/headshots/baratheon/Joffrey_Baratheon.png" />
+		<img class="baratheon renly" src="assets/headshots/baratheon/Renly_Baratheon.png" />
+		<img class="baratheon robert" src="assets/headshots/baratheon/Robert_Baratheon.png" />
+		<img class="baratheon stannis" src="assets/headshots/baratheon/Stannis_Baratheon.png" />
+		
+		<img class="lannister cersi" src="assets/headshots/lannister/Cersi_Lannister.png" />
+		<img class="lannister jamie" src="assets/headshots/lannister/Jamie_Lannister.png" />
+		<img class="lannister lancel" src="assets/headshots/lannister/Lancel_Lannister.png" />
+		<img class="lannister tyrion" src="assets/headshots/lannister/Tyrion_Lannister.png" />
+		<img class="lannister tywin" src="assets/headshots/lannister/Tywin_Lannister.png" />
+		
+		<img class="stark arya" src="assets/headshots/stark/Arya_Stark.png" />
+		<img class="stark brandon" src="assets/headshots/stark/Brandon_Stark.png" />
+		<img class="stark catelyn" src="assets/headshots/stark/Catelyn_Stark.png" />
+		<img class="stark eddard" src="assets/headshots/stark/Eddard_Stark.png" />
+		<img class="stark rickon" src="assets/headshots/stark/Rickon_Stark.png" />
+		<img class="stark rob" src="assets/headshots/stark/Rob_Stark.png" />
+		<img class="stark sansa" src="assets/headshots/stark/Sansa_Stark.png" />
+		
+		<img class="targaryen daenerys" src="assets/headshots/targaryen/Daenerys_Targaryen.png" />
+		<img class="targaryen viserys" src="assets/headshots/targaryen/Viserys_Targaryen.png" />
+		
+	</div>
+
+<!--
+	<div id="positionButtonDiv">
+		<img id="zoomInButton" class="zoomButton" src="assets/zoomin.png" title="zoom in" alt="zoom in" /> 
+		<img id="zoomOutButton" class="zoomButton" src="assets/zoomout.png" title="zoom out" alt="zoom out" />
+	</div>
+-->	
+	<div id="scenes">
+	<div id="thumbnails" class="owl-carousel owl-theme">
+	  <div>&nbsp;</div>
+	  <div>&nbsp;</div>
+		<div id="scene0" class="item orange">
+			<img src="assets/timeline/scene0.jpg"/>
+			<div class="seek"></div>
+		</div>
+		<div id="scene1" class="item orange">
+			<img src="assets/timeline/scene1.jpg"/>
+		</div>
+		<div id="scene2" class="item orange">
+			<img src="assets/timeline/scene2.jpg"/>
+		</div>
+		<div id="scene3" class="item orange">
+			<img src="assets/timeline/scene3.jpg"/>
+		</div>
+		<div id="scene4" class="item orange">
+			<img src="assets/timeline/scene4.jpg"/>
+		</div>
+		<div id="scene5" class="item orange">
+			<img src="assets/timeline/scene5.jpg"/>
+		</div>		
+	</div>
+	 	
+	  <a class="move-left btn prev">
+		  <img src="assets/slider-left.png" />
+	  </a>
+	  <a class="move-right btn next"> 
+		  <img src="assets/slider-right.png" />
+		  
+		  
+	  </a>
+	  <a class="move-right pause btn"> 
+		  <img src="assets/pause.png" />
+	  </a>
+	  
+	</div>
+	
+
+</div>
+</body>
+</html>

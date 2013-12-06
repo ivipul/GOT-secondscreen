@@ -1,0 +1,14 @@
+{
+  "name":"gotapp",
+  "node":"0.6.12",
+  "author":"etvLab",
+  "dependencies": {
+  	"socket.io": "*",
+  	"express": "*",
+  	"jade": "*",
+	"ejs": "*"
+  	  },
+  "scripts": {
+  	"start": "node server.js"
+  }
+}

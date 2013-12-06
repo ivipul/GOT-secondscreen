@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Game of Thrones - Season 2 Episode 4</title>
+
+  <link href="css/video-js.css" rel="stylesheet" type="text/css">
+  <script src="js/video.js"></script>
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+  <script src="http://localhost:11000/socket.io/socket.io.js"></script>
+  <!-- Unless using the CDN hosted version, update the URL to the Flash SWF -->
+  <script>
+    videojs.options.flash.swf = "video-js.swf";
+  </script>
+
+
+</head>
+<body>
+
+  <video id="videoPlayer" class="video-js vjs-default-skin" controls preload="auto" width="1024" height="576" data-setup="{}">
+    <source src="video/game.of.thrones.s02e04.mp4" type='video/mp4' />
+  </video>
+
+<script>
+	var socket = io.connect('http://localhost:11000');
+	
+	var triggerTimes = [12,85,90,130,132,170,204,222,238,303,439,448,465,584,663,695,725,844,900,908];
+	var sceneTimes = [12,130,303,439,663,844];
+	var dialogTimes = [15,17,17.5,22.5,23,27,30,31,32,33,56,68,69,70,71,71.5,72,72.5,73,75,76,77,108,116,116.5,118,119,125,128,130,132,137,138,139,139.5,152,153,172,176,179,186,190,197,201,213,216,226,229,229.5,233,234,236,237,241,246,256,278,286,287,291,291.3,299,321,323,324,326,327,328.5,329,330,332,333,335,336,385,387,390,391,415,437,442,443,444,445,446,446.5,447,451.5,452,459,459.5,460,461,469,470,472,486,498,499,500,517,538,539,541,543,544,550,550.1,554,555,557,557.5,573,574,574.5,575,584,585,586,591,592,621,634,634.5,635];
+
+	
+	videojs("videoPlayer").ready(function(){
+		socket.emit('videoStart', {message: "The video has started"}); //send to client that the video has started
+		var myPlayer = this;
+
+		myPlayer.dimensions($(document).width()-20, $(document).height()-20);
+		myPlayer.play();
+		//myPlayer.requestFullScreen();
+		var currTime, lastEvent=0, lastScene = 0, match, activeScene, lastDialog=0, activeDialog;
+		var lastTimeUpdate = 12;
+		var durationAdded = false;
+		myPlayer.on('timeupdate', function(){
+			currTime = myPlayer.currentTime();
+			if(currTime > 2 && durationAdded == false){
+				sceneTimes.push(myPlayer.duration()); //add the end timestamp as the last value in the sceneTimes array
+				durationAdded = true;
+			}
+				
+			if (~~currTime != lastTimeUpdate && ~~currTime > sceneTimes[0]){
+				var sceneDuration = sceneTimes[sceneTimes.indexOf(activeScene) +1] - activeScene;
+				lastTimeUpdate = ~~currTime;
+				socket.emit('updateCurrentTime', {currentTime: ~~currTime, sceneStart: activeScene,  sceneDuration: sceneDuration, sceneIndex: sceneTimes.indexOf(activeScene)});
+			}
+				
+				
+			for (var i = 0; i < triggerTimes.length; i++) {
+			   if (currTime >= triggerTimes[i] && currTime <= triggerTimes[i] + 0.5){ 
+					match = triggerTimes[i];
+					if (match != lastEvent){
+						if ($.inArray( match, sceneTimes) != -1){
+							console.log("the scene type is a new scene");
+							lastScene = match;
+						}
+						lastEvent  = triggerTimes[i];
+						socket.emit('eventBroadcast', {eventIndex: i});
+					}
+				}
+			}
+			
+			for (var i = 0; i < dialogTimes.length; i++) {
+			   if (currTime >= dialogTimes[i] && currTime <= dialogTimes[i] + 0.5){ 
+					activeDialog = dialogTimes[i];
+					if (activeDialog != lastDialog){
+						lastDialog  = dialogTimes[i];
+						socket.emit('dialogBroadcast', {dialogIndex: i});
+					}
+				}
+			}
+
+			for (var i = 0; i < sceneTimes.length -1; i++) { //-1 to not loop of the end-of-video timestamp
+				if (currTime > sceneTimes[i] && currTime < sceneTimes[i+1]){
+					activeScene = sceneTimes[i];
+					if (activeScene != lastScene){
+						lastScene = activeScene;
+						socket.emit('eventBroadcast', {eventIndex: triggerTimes.indexOf(activeScene)});
+					}
+				}
+			}
+		});
+		
+		socket.on('changeSceneOnPlayer', function  (data) {
+			myPlayer.currentTime(sceneTimes[data.index]);
+		});
+	});
+</script>  
+</body>
+</html>
