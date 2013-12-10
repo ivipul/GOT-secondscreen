@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Game of Thrones</title>
 <link rel="stylesheet" href="css/styles.css" type="text/css" />
-<script src="http://128.61.26.200:11000/socket.io/socket.io.js"></script>
+<script src="http://128.61.25.117:11000/socket.io/socket.io.js"></script>
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
 <script src="js/e-smart-zoom-jquery.min.js"></script>
 <script src="js/owl.carousel.min.js"></script>
@@ -177,9 +177,9 @@
 		           setTimeout(function() {
 					      $('#search').hide()
 					}, 200);
-				$('#houseflags').animate({right: "-90px", opacity: "0"}, 500);
-			
+				   $('#houseflags').animate({right: "-90px", opacity: "0"}, 500);
 				   $("#searches img").hide();
+				   //$('#imageFullScreen').smartZoom('zoom', 2, {'x':lastX,'y':lastY+130}, 300);
 		         
 		         }
 		       );
@@ -261,7 +261,7 @@
 		});
 		
 
-        var socket = io.connect('http://128.61.26.200:11000');
+        var socket = io.connect('http://128.61.25.117:11000');
 
 		socket.on('videoStart', function  (data) {
 			$("#eventListing").append('<p>' + data.message + '</p>');
